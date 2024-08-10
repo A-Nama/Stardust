@@ -3,6 +3,7 @@ from app import app
 from app.earth_engine import get_light_pollution_data
 from app.geocoding import geocode_address
 from app.air_quality import get_air_quality
+import ee
 
 @app.route('/')
 def index():
