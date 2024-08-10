@@ -1,30 +1,38 @@
+import ssl
+import certifi
 import ee
 
-# Initialize Earth Engine
-ee.Initialize()
+# Create an SSL context with the certifi certificate bundle
+ssl_context = ssl.create_default_context(cafile=certifi.where())
 
-def get_light_pollution_data(bounds):
-    # Fetch the VIIRS Nighttime Lights image collection
+def authenticate_earth_engine():
+    try:
+        ee.Authenticate()  # Authenticate Earth Engine
+        ee.Initialize()    # Initialize the Earth Engine API
+    except Exception as e:
+        print(f"Authentication failed: {e}")
+        exit()
+
+# Call the authentication function
+authenticate_earth_engine()
+
+def get_light_pollution_data(lat, lng):
+    bounds = ee.Geometry.Rectangle([
+        lng - 0.05, lat - 0.05,  # southwest corner
+        lng + 0.05, lat + 0.05   # northeast corner
+    ])
+    
     image = ee.ImageCollection('NOAA/VIIRS/DNB/MONTHLY_V1/VCMSLCFG') \
         .filterBounds(bounds) \
-        .filterDate('2024-01-01', '2024-08-01')  # Adjust date range as needed
-        .mean()  # Compute the mean value over the date range
+        .mean()
 
-    # Extract light pollution data by reducing over the region
-    light_pollution_stats = image.reduceRegion(
-        reducer=ee.Reducer.mean(),  # Calculate mean light pollution
-        geometry=bounds,             # Use the provided bounds
-        scale=1000,                  # Scale in meters (adjust based on desired resolution)
-        maxPixels=1e13               # Maximum number of pixels to process
-    )
-    
-    # Get the light pollution value (assuming 'avg_rad' is the relevant band)
-    light_pollution_value = light_pollution_stats.get('avg_rad').getInfo()
+    # Compute the mean light pollution value for the area
+    light_pollution = image.reduceRegion(
+        reducer=ee.Reducer.mean(),
+        geometry=bounds,
+        scale=500
+    ).get('avg_rad')  # Replace 'avg_rad' with the appropriate band name
 
     return {
-        'light_pollution': light_pollution_value
+        'light_pollution': light_pollution.getInfo()  # Convert to a Python value
     }
-
-# Example usage
-light_pollution_data = get_light_pollution_data(bounds)
-print(light_pollution_data)
