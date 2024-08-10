@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stardust Website</title>
+    <link rel="stylesheet" href="2ndpage.css">
+    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
+    <script>
+        function initMap() {
+            var map = new google.maps.Map(document.getElementById('map'), {
+                center: {lat: -34.397, lng: 150.644},
+                zoom: 8
+            });
+
+            document.getElementById('findPlacesButton').addEventListener('click', function() {
+                var locationInput = document.querySelector('.location-input input').value;
+
+                // Optional: Convert locationInput to coordinates here if needed.
+                // For now, let's assume you have a way to convert it to lat/lng
+
+                fetch('/find_stargazing_places', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({location: locationInput})
+                })
+                .then(response => response.json())
+                .then(data => {
+                    map.setCenter({lat: data[0].lat, lng: data[0].lng}); // Center map on the first result
+                    data.forEach(place => {
+                        new google.maps.Marker({
+                            position: {lat: place.lat, lng: place.lng},
+                            map: map,
+                            title: place.name
+                        });
+                    });
+                })
+                .catch(error => console.error('Error fetching stargazing places:', error));
+            });
+        }
+    </script>
+</head>
+<body onload="initMap()">
+    <!-- Header with Location Input -->
+    <header class="header">
+        <img src="logo (1).png" alt="Stardust Logo" class="logo">
+        <div class="location-input">
+            <span class="location-icon">📍</span>
+            <input type="text" placeholder="Enter your location">
+            
+        </div>
+    </header>
+
+    <!-- Map Container -->
+    <div id="map" style="height: 500px; width: 100%;"></div>
+
+    <script src="2ndpage.js"></script>
+</body>
+</html>
