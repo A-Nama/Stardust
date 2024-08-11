@@ -1,61 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Stardust Website</title>
-    <link rel="stylesheet" href="2ndpage.css">
-    <script src="https://maps.googleapis.com/maps/api/js?key=YOUR_GOOGLE_MAPS_API_KEY&libraries=places"></script>
-    <script>
-        function initMap() {
-            var map = new google.maps.Map(document.getElementById('map'), {
-                center: {lat: -34.397, lng: 150.644},
-                zoom: 8
-            });
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Stardust</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDP7b0pFz-yQP2aRq-AGPm2EXvjHpFruR8&libraries=places"></script>
+  <script>
+    function initMap() {
+      let map;
 
-            document.getElementById('findPlacesButton').addEventListener('click', function() {
-                var locationInput = document.querySelector('.location-input input').value;
+      // Initialize the map with a default center
+      map = new google.maps.Map(document.getElementById('map'), {
+        center: { lat: 10.8505, lng: 76.2711 }, // Default to Kochi
+        zoom: 12
+      });
 
-                // Optional: Convert locationInput to coordinates here if needed.
-                // For now, let's assume you have a way to convert it to lat/lng
+      const locationInput = document.querySelector('.location-input input');
 
-                fetch('/find_stargazing_places', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({location: locationInput})
-                })
-                .then(response => response.json())
-                .then(data => {
-                    map.setCenter({lat: data[0].lat, lng: data[0].lng}); // Center map on the first result
-                    data.forEach(place => {
-                        new google.maps.Marker({
-                            position: {lat: place.lat, lng: place.lng},
-                            map: map,
-                            title: place.name
-                        });
-                    });
-                })
-                .catch(error => console.error('Error fetching stargazing places:', error));
-            });
+      locationInput.addEventListener('input', function() {
+        const locationValue = locationInput.value.trim();
+        if (locationValue) {
+          const coordinates = locationValue.split(',');
+          if (coordinates.length === 2) {
+            const userLatitude = parseFloat(coordinates[0]);
+            const userLongitude = parseFloat(coordinates[1]);
+
+            // Clear existing markers
+            if (map.markers) {
+              map.markers.forEach(marker => marker.setMap(null));
+              map.markers = [];
+            }
+
+            // Generate 5 random nearby points
+            const markers = [];
+            for (let i = 0; i < 5; i++) {
+              const offsetLat = (Math.random() - 0.5) * 0.1; // Random offset for latitude
+              const offsetLng = (Math.random() - 0.5) * 0.1; // Random offset for longitude
+              const markerLat = userLatitude + offsetLat;
+              const markerLng = userLongitude + offsetLng;
+
+              const marker = new google.maps.Marker({
+                position: { lat: markerLat, lng: markerLng },
+                map: map,
+                title: `Marker ${i + 1}`
+              });
+              markers.push(marker);
+            }
+
+            // Center map on the user location
+            map.setCenter({ lat: userLatitude, lng: userLongitude });
+
+            // Store markers to remove them later
+            map.markers = markers;
+          } else {
+            alert('Please enter a valid location in the format: latitude,longitude');
+          }
         }
-    </script>
+      });
+    }
+  </script>
 </head>
 <body onload="initMap()">
-    <!-- Header with Location Input -->
-    <header class="header">
-        <img src="logo (1).png" alt="Stardust Logo" class="logo">
-        <div class="location-input">
-            <span class="location-icon">📍</span>
-            <input type="text" placeholder="Enter your location">
-            
-        </div>
-    </header>
+  <header class="header">
+    <img src="/static/logo.png" alt="Stardust Logo" class="logo">
+    <div class="location-input">
+      <span class="location-icon"></span>
+      <input type="text" placeholder="Enter your location (latitude,longitude)">
+    </div>
+  </header>
 
-    <!-- Map Container -->
-    <div id="map" style="height: 500px; width: 100%;"></div>
-
-    <script src="2ndpage.js"></script>
+  <div id="map" style="height: 500px; width: 100%;"></div>
 </body>
 </html>
