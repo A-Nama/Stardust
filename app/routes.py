@@ -7,7 +7,7 @@ import ee
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('location.html')
 
 @app.route('/find_stargazing_places', methods=['POST'])
 def find_stargazing_places():
@@ -60,6 +60,8 @@ def find_stargazing_places():
     
     # Sort places by light pollution and air quality (optional)
     places = sorted(places, key=lambda x: (x['light_pollution'], -x['air_quality']))
+
+    print(places)
     
     return jsonify(places)
 
