@@ -3,12 +3,13 @@ import certifi
 import ee
 
 # Create an SSL context with the certifi certificate bundle
-ssl_context = ssl.create_default_context(cafile=certifi.where())
+
+ssl._create_default_https_context = ssl._create_unverified_context
 
 def authenticate_earth_engine():
     try:
         ee.Authenticate()  # Authenticate Earth Engine
-        ee.Initialize()    # Initialize the Earth Engine API
+        ee.Initialize(project="location-432112")    # Initialize the Earth Engine API
     except Exception as e:
         print(f"Authentication failed: {e}")
         exit()
